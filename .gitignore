@@ -1,0 +1,10 @@
+# python
+*.pyc
+__pycache__/
+.venv/
+dist/
+
+# archlinux
+*.pkg.tar.zst
+pkg/
+src/
