@@ -1,0 +1,14 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: python:3.11-slim-trixie
+    steps:
+      - uses: actions/checkout@v5
+      - run: pip install -e ".[test]"
+      - run: pytest
