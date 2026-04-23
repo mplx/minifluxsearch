@@ -85,6 +85,7 @@ class App:
         self._kw_combo = ttk.Combobox(bar, textvariable=self._kw_var, width=40)
         self._kw_combo.pack(side=tk.LEFT, padx=(4, 8))
         self._kw_combo.bind("<Return>", lambda _: self._search())
+        self._kw_combo.bind("<<ComboboxSelected>>", lambda _: self._search())
         self._kw_combo.focus()
 
         ttk.Button(bar, text="Search", command=self._search).pack(side=tk.LEFT)
@@ -676,17 +677,64 @@ class App:
         self._status_var.set(msg)
 
 
+def _show_first_run_dialog(root: tk.Tk) -> bool:
+    saved = [False]
+
+    win = tk.Toplevel(root)
+    win.title("minifluxsearch — Setup")
+    win.resizable(False, False)
+    win.grab_set()
+
+    frame = ttk.Frame(win, padding=12)
+    frame.pack(fill=tk.BOTH, expand=True)
+    frame.columnconfigure(1, weight=1)
+
+    ttk.Label(frame, text="No configuration found. Enter your Miniflux credentials:").grid(
+        row=0, column=0, columnspan=2, sticky=tk.W, pady=(0, 8))
+
+    ttk.Label(frame, text="Miniflux URL:").grid(row=1, column=0, sticky=tk.W, padx=8, pady=4)
+    url_var = tk.StringVar()
+    ttk.Entry(frame, textvariable=url_var, width=42).grid(row=1, column=1, sticky=tk.EW, padx=8, pady=4)
+
+    ttk.Label(frame, text="API Key:").grid(row=2, column=0, sticky=tk.W, padx=8, pady=4)
+    key_var = tk.StringVar()
+    key_entry = ttk.Entry(frame, textvariable=key_var, width=42, show="•")
+    key_entry.grid(row=2, column=1, sticky=tk.EW, padx=8, pady=4)
+
+    show_var = tk.BooleanVar()
+    ttk.Checkbutton(
+        frame, text="Show API key", variable=show_var,
+        command=lambda: key_entry.config(show="" if show_var.get() else "•"),
+    ).grid(row=3, column=1, sticky=tk.W, padx=8)
+
+    def on_save() -> None:
+        url = url_var.get().strip()
+        key = key_var.get().strip()
+        if not url or not key:
+            messagebox.showerror("Error", "URL and API key are required.", parent=win)
+            return
+        try:
+            save_config(url, key)
+        except OSError as e:
+            messagebox.showerror("Error", f"Could not write config file:\n{e}", parent=win)
+            return
+        saved[0] = True
+        win.destroy()
+
+    btn_frame = ttk.Frame(frame)
+    btn_frame.grid(row=4, column=0, columnspan=2, sticky=tk.E, pady=(12, 0))
+    ttk.Button(btn_frame, text="Cancel", command=win.destroy).pack(side=tk.LEFT, padx=(0, 4))
+    ttk.Button(btn_frame, text="Save", command=on_save).pack(side=tk.LEFT)
+
+    win.bind("<Return>", lambda _: on_save())
+    win.bind("<Escape>", lambda _: win.destroy())
+
+    root.wait_window(win)
+    return saved[0]
+
+
 def main() -> None:
     locale.setlocale(locale.LC_ALL, "")
-    try:
-        config = load_config()
-        client = MinifluxClient(config)
-    except RuntimeError as e:
-        root = tk.Tk()
-        root.withdraw()
-        messagebox.showerror("Configuration Error", str(e))
-        root.destroy()
-        return
 
     root = tk.Tk()
     root.withdraw()
@@ -694,7 +742,21 @@ def main() -> None:
     if _ICON_PATH.exists():
         icon = tk.PhotoImage(file=str(_ICON_PATH))
         root.iconphoto(True, icon)
-    App(root, client)
+
+    try:
+        config = load_config()
+    except RuntimeError:
+        if not _show_first_run_dialog(root):
+            root.destroy()
+            return
+        try:
+            config = load_config()
+        except RuntimeError as e:
+            messagebox.showerror("Configuration Error", str(e))
+            root.destroy()
+            return
+
+    App(root, MinifluxClient(config))
     root.deiconify()
     root.mainloop()
 

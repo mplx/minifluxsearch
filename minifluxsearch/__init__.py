@@ -4,4 +4,4 @@
 # Licensed under the GNU Lesser General Public License v3.0 or later.
 # See <https://www.gnu.org/licenses/lgpl-3.0> for details.
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"

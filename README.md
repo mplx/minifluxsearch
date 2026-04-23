@@ -25,6 +25,8 @@ Requires Python ≥ 3.11.
 
 ## Configuration
 
+Generate an API key in Miniflux under *Settings → API Keys*.
+
 Either set environment variables:
 
 ```bash
@@ -45,7 +47,7 @@ url = "https://your-miniflux-instance"
 api_key = "your-api-key"
 ```
 
-Generate an API key in Miniflux under *Settings → API Keys*. Later you can use the **Config** button in the GUI.
+or you can use the GUI for an initial config.
 
 ## GUI
 
@@ -55,17 +57,18 @@ minifluxsearch-gui
 
 - Left panel: tabbed Feeds / Categories listbox - click to select, Shift+click for range, Ctrl+click to toggle, Ctrl+A for all
 - Filter controls: status, starred, date pickers (with enable checkbox), fetch limit, max results
-- Results table: Date / ★ / Title / URL columns - click headers to sort
 - Keywords field: dropdown with last 10 searches; leave empty to list all matching entries
-- **Double-click** or **Enter**: open in browser, mark as read
-- **Ctrl+A**: select all results
-- **r**: toggle read/unread for selected entries
-- **s**: toggle starred for selected entries
-- **k**: focus the keyword input field
-- **Right-click**: context menu for read/unread, star/unstar, open - acts on all selected entries
-- **Mark as read** / **Mark as unread** buttons: mark all selected entries (or all results if none selected)
-- **Config** button: edit Miniflux URL, API key, and UI theme
-- Unread entries shown in bold; starred entries show ★
+- Results table
+  - Date / Starred / Title / URL columns - click headers to sort
+  - **Double-click** or **Enter**: open in browser, mark as read
+  - **Ctrl+A**: select all results
+  - **r**: toggle read/unread for selected entries
+  - **s**: toggle starred for selected entries
+  - **k**: focus the keyword input field
+  - **Right-click**: context menu for read/unread, star/unstar, open - acts on all selected entries
+  - **Mark as read** / **Mark as unread** buttons: mark all selected entries (or all results if none selected)
+  - **Config** button: edit Miniflux URL, API key, and UI theme
+  - Unread entries shown in bold; starred entries show ★
 - Filter state, keyword history, theme, and window size/position are saved and restored on next launch
 
 ### Themes

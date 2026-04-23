@@ -1,7 +1,7 @@
 # Maintainer: developer@mplx.eu
 
 pkgname=minifluxsearch
-pkgver=0.1.0
+pkgver=0.3.0
 pkgrel=1
 pkgdesc='CLI and GUI tool to search Miniflux RSS entries by keyword'
 arch=('any')
