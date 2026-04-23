@@ -27,15 +27,14 @@ sha256sums=()
 
 build() {
     cd "$startdir"
-    /usr/bin/python -m build --wheel --no-isolation
+    /usr/bin/python -m build --wheel --no-isolation --outdir "$srcdir"
 }
 
 package() {
-    cd "$startdir"
-    /usr/bin/python -m installer --destdir="$pkgdir" dist/*.whl
+    /usr/bin/python -m installer --destdir="$pkgdir" "$srcdir"/*.whl
 
     # System-wide icon (used by the .desktop entry)
-    install -Dm644 "minifluxsearch/icon.png" \
+    install -Dm644 "$startdir/minifluxsearch/icon.png" \
         "$pkgdir/usr/share/pixmaps/$pkgname.png"
 
     # Desktop entry so the GUI appears in application menus

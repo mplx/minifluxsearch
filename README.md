@@ -59,8 +59,11 @@ minifluxsearch-gui
 - Keywords field: dropdown with last 10 searches; leave empty to list all matching entries
 - **Double-click** or **Enter**: open in browser, mark as read
 - **Ctrl+A**: select all results
+- **r**: toggle read/unread for selected entries
+- **s**: toggle starred for selected entries
+- **k**: focus the keyword input field
 - **Right-click**: context menu for read/unread, star/unstar, open - acts on all selected entries
-- **Mark as read** button: marks all selected entries as read
+- **Mark as read** / **Mark as unread** buttons: mark all selected entries (or all results if none selected)
 - **Config** button: edit Miniflux URL, API key, and UI theme
 - Unread entries shown in bold; starred entries show ★
 - Filter state, keyword history, theme, and window size/position are saved and restored on next launch
@@ -69,7 +72,7 @@ minifluxsearch-gui
 
 The Config dialog offers three themes:
 
-- **Default (system)** - plain tkinter default
+- **System** - plain tkinter default
 - **Forest Light** (default) - clean light theme
 - **Forest Dark** - dark variant
 
@@ -125,6 +128,10 @@ minifluxsearch search python \
 
 # Export to CSV
 minifluxsearch search python --format csv > results.csv
+
+# Daily email report for "Python" articles published since yesterday (crontab)
+# cron mails stdout to the local user when the command produces output
+0 7 * * * minifluxsearch search Python --after $(date -d yesterday +\%Y-\%m-\%d) --format csv
 ```
 
 ### Output formats

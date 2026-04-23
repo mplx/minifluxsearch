@@ -6,6 +6,7 @@
 
 import locale
 import os
+import unicodedata
 from pathlib import Path
 import threading
 import tkinter.font as tkfont
@@ -20,7 +21,7 @@ _ICON_PATH = Path(__file__).parent / "icon.png"
 _THEME_LABELS = {
     "forest-light": "Forest Light",
     "forest-dark":  "Forest Dark",
-    "default":      "Default (system)",
+    "default":      "System",
 }
 _THEME_KEYS = {v: k for k, v in _THEME_LABELS.items()}
 _sourced_themes: set[str] = set()
@@ -93,6 +94,8 @@ class App:
                         variable=self._any_kw_var).pack(side=tk.LEFT, padx=(12, 0))
         ttk.Button(bar, text="Mark as read",
                    command=self._mark_selected_read).pack(side=tk.LEFT, padx=(8, 0))
+        ttk.Button(bar, text="Mark as unread",
+                   command=self._mark_selected_unread).pack(side=tk.LEFT, padx=(4, 0))
         ttk.Button(bar, text="Config",
                    command=self._open_settings).pack(side=tk.LEFT, padx=(4, 0))
 
@@ -209,10 +212,9 @@ class App:
             self._tree.get_children()))
         self._tree.bind("<Shift-Up>",   lambda _: self._extend_selection(-1))
         self._tree.bind("<Shift-Down>", lambda _: self._extend_selection(1))
-        self._tree.bind("r", lambda _: self._set_entries_status(
-            self._selected_entries(), "read"))
-        self._tree.bind("s", lambda _: self._star_entries(
-            self._selected_entries(), starred=True))
+        self._tree.bind("r", lambda _: self._toggle_status(self._selected_entries()))
+        self._tree.bind("s", lambda _: self._toggle_starred(self._selected_entries()))
+        self._tree.bind("k", lambda _: self._kw_combo.focus_set())
 
     def _make_listbox(self, parent: ttk.Frame) -> tk.Listbox:
         frame = ttk.Frame(parent)
@@ -242,9 +244,9 @@ class App:
     def _populate_scope(self, feeds: list[Feed], cats: list[Category]) -> None:
         self._feeds = sorted(
             (f for f in feeds if not f.disabled),
-            key=lambda f: locale.strxfrm(f.title),
+            key=lambda f: locale.strxfrm(unicodedata.normalize("NFKD", f.title.casefold())),
         )
-        self._categories = sorted(cats, key=lambda c: locale.strxfrm(c.title))
+        self._categories = sorted(cats, key=lambda c: locale.strxfrm(unicodedata.normalize("NFKD", c.title.casefold())))
 
         for feed in self._feeds:
             label = feed.title
@@ -398,6 +400,18 @@ class App:
         menu.add_command(label=f"Unstar{suffix}",
                          command=lambda: self._star_entries(selected, starred=False))
         menu.tk_popup(event.x_root, event.y_root)
+
+    def _toggle_status(self, entries: list[tuple[str, Entry]]) -> None:
+        if not entries:
+            return
+        all_read = all(e.status == "read" for _, e in entries)
+        self._set_entries_status(entries, "unread" if all_read else "read")
+
+    def _toggle_starred(self, entries: list[tuple[str, Entry]]) -> None:
+        if not entries:
+            return
+        all_starred = all(e.starred for _, e in entries)
+        self._star_entries(entries, starred=not all_starred)
 
     def _set_entries_status(self, entries: list[tuple[str, Entry]], status: str) -> None:
         to_update = [(iid, e) for iid, e in entries if e.status != status]
@@ -629,6 +643,10 @@ class App:
     def _mark_selected_read(self) -> None:
         entries = self._selected_entries() or list(self._item_entries.items())
         self._set_entries_status(entries, "read")
+
+    def _mark_selected_unread(self) -> None:
+        entries = self._selected_entries() or list(self._item_entries.items())
+        self._set_entries_status(entries, "unread")
 
     def _extend_selection(self, direction: int) -> str:
         items = self._tree.get_children()
