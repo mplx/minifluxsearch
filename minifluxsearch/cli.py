@@ -7,6 +7,7 @@
 import csv
 import io
 import locale
+import xml.etree.ElementTree as ET
 from datetime import date, datetime, timezone
 from typing import Optional
 
@@ -80,6 +81,16 @@ def _print_results(results: list[Entry], fmt: str) -> None:
             writer.writerow([_entry_date(entry), entry.title, entry.url])
         click.echo(buf.getvalue(), nl=False)
 
+    elif fmt == "xml":
+        root = ET.Element("entries")
+        for entry in results:
+            el = ET.SubElement(root, "entry")
+            ET.SubElement(el, "date").text = _entry_date(entry)
+            ET.SubElement(el, "title").text = entry.title
+            ET.SubElement(el, "url").text = entry.url
+        ET.indent(root)
+        click.echo(ET.tostring(root, encoding="unicode", xml_declaration=False))
+
 
 @click.group()
 def main() -> None:
@@ -144,7 +155,7 @@ def cmd_feeds() -> None:
               type=click.Choice(["date", "title", "url"]), multiple=True,
               help="Sort fields, ascending (repeatable). Default: date then title.")
 @click.option("--format", "fmt",
-              type=click.Choice(["text", "markdown", "csv", "tsv"]),
+              type=click.Choice(["text", "markdown", "csv", "tsv", "xml"]),
               default="text", show_default=True, help="Output format.")
 @click.option("--any-keyword", "match_any", is_flag=True, default=False,
               help="Match any keyword (default: all keywords must match).")

@@ -106,7 +106,7 @@ Options:
   --fetch-limit INTEGER             Max entries fetched per feed  [default: 1000]
   --max-results INTEGER             Max results printed after filtering
   --sort [date|title|url]           Sort field, ascending (repeatable)  [default: date title]
-  --format [text|markdown|csv|tsv]  Output format  [default: text]
+  --format [text|markdown|csv|tsv|xml]  Output format  [default: text]
   --any-keyword                     Match any keyword (default: all must match)
 ```
 
@@ -150,3 +150,14 @@ minifluxsearch search python --format csv > results.csv
 ```
 
 **csv / tsv** - header row + data rows, properly quoted.
+
+**xml**:
+```xml
+<entries>
+  <entry>
+    <date>2026-04-10</date>
+    <title>Python News April 2026</title>
+    <url>https://example.com/python-news</url>
+  </entry>
+</entries>
+```
