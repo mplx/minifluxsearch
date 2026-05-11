@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "minifluxsearch"
-version = "0.3.0"
+dynamic = ["version"]
 requires-python = ">=3.11"
 license = {file = "LICENSE"}
 classifiers = [
@@ -35,6 +35,9 @@ minifluxsearch = "minifluxsearch.cli:main"
 
 [project.gui-scripts]
 minifluxsearch-gui = "minifluxsearch.gui:main"
+
+[tool.hatch.version]
+path = "minifluxsearch/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 include = ["minifluxsearch/**"]

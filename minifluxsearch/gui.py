@@ -76,19 +76,26 @@ class App:
         self._build_left(left)
         self._build_results(right)
 
+        self._root.bind("<Alt-k>", lambda _: self._kw_combo.focus_set())
+        self._root.bind("<Alt-f>", lambda _: (self._nb.select(0), self._feeds_lb.focus_set()))
+        self._root.bind("<Alt-c>", lambda _: (self._nb.select(1), self._cats_lb.focus_set()))
+        self._root.bind("<Alt-l>", lambda _: self._focus_tree())
+        self._root.bind("<Alt-s>", lambda _: self._search())
+
     def _build_topbar(self) -> None:
         bar = ttk.Frame(self._root, padding=(6, 6, 6, 4))
         bar.pack(fill=tk.X)
 
-        ttk.Label(bar, text="Keywords:").pack(side=tk.LEFT)
+        ttk.Label(bar, text="Keywords:", underline=0).pack(side=tk.LEFT)
         self._kw_var = tk.StringVar()
         self._kw_combo = ttk.Combobox(bar, textvariable=self._kw_var, width=40)
         self._kw_combo.pack(side=tk.LEFT, padx=(4, 8))
         self._kw_combo.bind("<Return>", lambda _: self._search())
         self._kw_combo.bind("<<ComboboxSelected>>", lambda _: self._search())
+        self._kw_combo.bind("<Control-a>", lambda e: (e.widget.select_range(0, tk.END), e.widget.icursor(tk.END), "break")[2])
         self._kw_combo.focus()
 
-        ttk.Button(bar, text="Search", command=self._search).pack(side=tk.LEFT)
+        ttk.Button(bar, text="Search", underline=0, command=self._search).pack(side=tk.LEFT)
 
         self._any_kw_var = tk.BooleanVar()
         ttk.Checkbutton(bar, text="Any keyword",
@@ -101,26 +108,31 @@ class App:
                    command=self._open_settings).pack(side=tk.LEFT, padx=(4, 0))
 
     def _build_statusbar(self) -> None:
+        bar = ttk.Frame(self._root, relief=tk.SUNKEN)
+        bar.pack(fill=tk.X, side=tk.BOTTOM)
         self._status_var = tk.StringVar(value="Loading…")
-        ttk.Label(self._root, textvariable=self._status_var, anchor=tk.W,
-                  relief=tk.SUNKEN, padding=(4, 2)).pack(fill=tk.X, side=tk.BOTTOM)
+        ttk.Label(bar, textvariable=self._status_var, anchor=tk.W,
+                  padding=(4, 2)).pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self._count_var = tk.StringVar()
+        ttk.Label(bar, textvariable=self._count_var, anchor=tk.E,
+                  padding=(4, 2)).pack(side=tk.RIGHT)
 
     def _build_left(self, parent: ttk.Frame) -> None:
         # -- scope -------------------------------------------------------------
         scope = ttk.LabelFrame(parent, text="Scope", padding=4)
         scope.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
-        nb = ttk.Notebook(scope)
-        nb.pack(fill=tk.BOTH, expand=True)
+        self._nb = ttk.Notebook(scope)
+        self._nb.pack(fill=tk.BOTH, expand=True)
 
-        feeds_tab = ttk.Frame(nb)
-        nb.add(feeds_tab, text="Feeds")
+        feeds_tab = ttk.Frame(self._nb)
+        self._nb.add(feeds_tab, text="Feeds", underline=0)
         self._feeds_lb = self._make_listbox(feeds_tab)
         self._feeds_lb.bind("<Double-Button-1>", lambda _: (
             self._cats_lb.selection_clear(0, tk.END), self._search()))
 
-        cats_tab = ttk.Frame(nb)
-        nb.add(cats_tab, text="Categories")
+        cats_tab = ttk.Frame(self._nb)
+        self._nb.add(cats_tab, text="Categories", underline=0)
         self._cats_lb = self._make_listbox(cats_tab)
         self._cats_lb.bind("<Double-Button-1>", lambda _: (
             self._feeds_lb.selection_clear(0, tk.END), self._search()))
@@ -203,18 +215,23 @@ class App:
 
         vsb = ttk.Scrollbar(parent, orient=tk.VERTICAL, command=self._tree.yview)
         self._tree.configure(yscrollcommand=vsb.set)
-        self._tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         vsb.pack(side=tk.RIGHT, fill=tk.Y)
+        self._tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         self._tree.bind("<Double-1>", self._open_url)
         self._tree.bind("<Return>", self._open_url)
         self._tree.bind("<Button-3>", self._show_context_menu)
         self._tree.bind("<Control-a>", lambda _: self._tree.selection_set(
             self._tree.get_children()))
-        self._tree.bind("<Shift-Up>",   lambda _: self._extend_selection(-1))
-        self._tree.bind("<Shift-Down>", lambda _: self._extend_selection(1))
-        self._tree.bind("r", lambda _: self._toggle_status(self._selected_entries()))
-        self._tree.bind("s", lambda _: self._toggle_starred(self._selected_entries()))
+        self._tree.bind("<Shift-Up>",    lambda _: self._extend_selection(-1))
+        self._tree.bind("<Shift-Down>",  lambda _: self._extend_selection(1))
+        self._tree.bind("<Home>",        lambda _: self._jump_to_end(first=True))
+        self._tree.bind("<End>",         lambda _: self._jump_to_end(first=False))
+        self._tree.bind("<Shift-Home>",  lambda _: self._extend_to_end(first=True))
+        self._tree.bind("<Shift-End>",   lambda _: self._extend_to_end(first=False))
+        self._tree.bind("r", lambda _: self._r_key())
+        self._tree.bind("s", lambda _: self._s_key())
+        self._tree.bind("<Alt-s>", lambda _: (self._search(), "break")[1])
         self._tree.bind("k", lambda _: self._kw_combo.focus_set())
 
     def _make_listbox(self, parent: ttk.Frame) -> tk.Listbox:
@@ -225,8 +242,8 @@ class App:
                         yscrollcommand=sb.set, height=8, activestyle="dotbox")
         lb.bind("<Control-a>", lambda _: lb.selection_set(0, tk.END))
         sb.config(command=lb.yview)
-        lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         sb.pack(side=tk.RIGHT, fill=tk.Y)
+        lb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         return lb
 
     # -- data loading ----------------------------------------------------------
@@ -335,6 +352,7 @@ class App:
         self._populate_tree(entries)
         n = len(entries)
         self._set_status(f"{n} result{'s' if n != 1 else ''} found")
+        self._focus_tree()
 
     # -- treeview --------------------------------------------------------------
 
@@ -349,10 +367,17 @@ class App:
                                     values=(date_str, star_str, entry.title, entry.url),
                                     tags=tags)
             self._item_entries[iid] = entry
+        self._update_count()
 
     def _clear_tree(self) -> None:
         self._tree.delete(*self._tree.get_children())
         self._item_entries.clear()
+        self._update_count()
+
+    def _update_count(self) -> None:
+        total = len(self._item_entries)
+        unread = sum(1 for e in self._item_entries.values() if e.status == "unread")
+        self._count_var.set(f"{unread}/{total}" if total else "")
 
     def _sort_by(self, col: str) -> None:
         self._sort_rev = (col == self._sort_col) and not self._sort_rev
@@ -460,6 +485,7 @@ class App:
         self._tree.item(iid, tags=tags,
                         values=(*self._tree.item(iid, "values")[:1], star_str,
                                 *self._tree.item(iid, "values")[2:]))
+        self._update_count()
 
     # -- gui settings persistence ----------------------------------------------
 
@@ -662,6 +688,71 @@ class App:
         self._tree.focus(new_item)
         self._tree.selection_add(new_item)
         self._tree.see(new_item)
+        return "break"
+
+    def _focus_tree(self) -> None:
+        self._tree.focus_set()
+        items = self._tree.get_children()
+        if not items:
+            return
+        focused = self._tree.focus()
+        target = focused if focused in items else items[0]
+        self._tree.selection_set(target)
+        self._tree.focus(target)
+        self._tree.see(target)
+
+    def _jump_to_end(self, first: bool) -> str:
+        items = self._tree.get_children()
+        if not items:
+            return "break"
+        target = items[0] if first else items[-1]
+        self._tree.selection_set(target)
+        self._tree.focus(target)
+        self._tree.see(target)
+        return "break"
+
+    def _extend_to_end(self, first: bool) -> str:
+        items = self._tree.get_children()
+        if not items:
+            return "break"
+        focused = self._tree.focus()
+        if focused not in items:
+            focused = items[-1] if first else items[0]
+        idx = items.index(focused)
+        if first:
+            for item in items[:idx + 1]:
+                self._tree.selection_add(item)
+            target = items[0]
+        else:
+            for item in items[idx:]:
+                self._tree.selection_add(item)
+            target = items[-1]
+        self._tree.focus(target)
+        self._tree.see(target)
+        return "break"
+
+    def _move_focus_down(self) -> None:
+        items = self._tree.get_children()
+        if not items:
+            return
+        focused = self._tree.focus()
+        if focused not in items:
+            return
+        idx = items.index(focused)
+        if idx < len(items) - 1:
+            nxt = items[idx + 1]
+            self._tree.selection_set(nxt)
+            self._tree.focus(nxt)
+            self._tree.see(nxt)
+
+    def _r_key(self) -> str:
+        self._toggle_status(self._selected_entries())
+        self._move_focus_down()
+        return "break"
+
+    def _s_key(self) -> str:
+        self._toggle_starred(self._selected_entries())
+        self._move_focus_down()
         return "break"
 
     def _selected_entries(self) -> list[tuple[str, Entry]]:

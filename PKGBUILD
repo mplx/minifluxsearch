@@ -1,7 +1,7 @@
 # Maintainer: developer@mplx.eu
 
 pkgname=minifluxsearch
-pkgver=0.3.0
+pkgver=0.4.0
 pkgrel=1
 pkgdesc='CLI and GUI tool to search Miniflux RSS entries by keyword'
 arch=('any')
@@ -27,6 +27,7 @@ sha256sums=()
 
 build() {
     cd "$startdir"
+    rm -f "$srcdir"/*.whl
     /usr/bin/python -m build --wheel --no-isolation --outdir "$srcdir"
 }
 

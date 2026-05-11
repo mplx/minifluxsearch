@@ -55,20 +55,35 @@ or you can use the GUI for an initial config.
 minifluxsearch-gui
 ```
 
-- Left panel: tabbed Feeds / Categories listbox - click to select, Shift+click for range, Ctrl+click to toggle, Ctrl+A for all
+- Left panel: tabbed Feeds / Categories listbox — click to select, Shift+click for range, Ctrl+click to toggle, Ctrl+A for all
 - Filter controls: status, starred, date pickers (with enable checkbox), fetch limit, max results
-- Keywords field: dropdown with last 10 searches; leave empty to list all matching entries
+- Keywords field: dropdown with last 10 searches; leave empty to list all matching entries; **Ctrl+A** selects all text
 - Results table
-  - Date / Starred / Title / URL columns - click headers to sort
+  - Date / Starred / Title / URL columns — click headers to sort
   - **Double-click** or **Enter**: open in browser, mark as read
   - **Ctrl+A**: select all results
-  - **r**: toggle read/unread for selected entries
-  - **s**: toggle starred for selected entries
+  - **r**: toggle read/unread for selected entries, then move focus one row down
+  - **s**: toggle starred for selected entries, then move focus one row down
   - **k**: focus the keyword input field
-  - **Right-click**: context menu for read/unread, star/unstar, open - acts on all selected entries
+  - **Home** / **End**: jump to first / last entry (replaces selection)
+  - **Shift+Home** / **Shift+End**: extend selection to first / last entry
+  - **Shift+Up** / **Shift+Down**: extend selection one row
+  - **Right-click**: context menu for read/unread, star/unstar, open — acts on all selected entries
   - **Mark as read** / **Mark as unread** buttons: mark all selected entries (or all results if none selected)
   - **Config** button: edit Miniflux URL, API key, and UI theme
   - Unread entries shown in bold; starred entries show ★
+  - Status bar shows current message on the left and **unread/total** entry count on the right
+- After each search, focus moves automatically to the results list
+- Keyboard shortcuts (work from anywhere in the window):
+
+  | Shortcut | Action |
+  |----------|--------|
+  | **Alt+S** | Trigger search |
+  | **Alt+K** | Focus keywords input |
+  | **Alt+F** | Switch to Feeds tab and focus the list |
+  | **Alt+C** | Switch to Categories tab and focus the list |
+  | **Alt+L** | Focus the results list |
+
 - Filter state, keyword history, theme, and window size/position are saved and restored on next launch
 
 ### Themes
