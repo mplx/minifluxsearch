@@ -179,3 +179,7 @@ minifluxsearch search python --format csv > results.csv
   </entry>
 </entries>
 ```
+
+## Disclaimer
+
+This project is not affiliated with or endorsed by [Miniflux](https://miniflux.app) or its author [Frédéric Guillot](https://github.com/fguillot).
